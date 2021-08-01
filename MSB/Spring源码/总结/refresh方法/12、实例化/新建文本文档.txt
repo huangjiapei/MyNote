@@ -1,0 +1,4 @@
+SmartInitializingSingleton
+
+
+afterSingletonsInstantiated

@@ -1,0 +1,80 @@
+AbstractApplicationContext：refresh
+
+AbstractApplicationContext：obtainFreshBeanFactory
+
+AbstractRefreshableApplicationContext：refreshBeanFactory（创建bean工厂、加载xml文件）
+
+AbstractXmlApplicationContext：loadBeanDefinitions (DefaultListableBeanFactory beanFactory) 
+   （1）创建xml文件解析器XmlBeanDefinitionReader：初始化resourceLoader、environment、entityResolver
+   （2）设置XmlBeanDefinitionReader的resourceLoader、environment、entityResolver
+
+AbstractXmlApplicationContext：loadBeanDefinitions(XmlBeanDefinitionReader reader)
+    获取资源文件位置getConfigLocations，是在构造函数里面设置的
+
+AbstractBeanDefinitionReader：xmlBeanDefinitionReader.loadBeanDefinitions(configLocations);
+   遍历配置文件地址configLocations
+
+AbstractBeanDefinitionReader：loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources)
+  configLocations->resources
+   （1）获取资源加载器：getResourceLoader()
+    将配置文件映射为Resource
+   （2）通过资源加载器创建资源对象：resourceLoader.getResources(location)
+		                    DefaultResourceLoader的 resourceLoader.getResource(locationPattern)
+    		 创建Resource对象（两个属性，path、classLoader）：DefaultResourceLoader：protected Resource getResourceByPath(String path) {
+				return new ClassPathContextResource(path, getClassLoader());
+				}
+
+AbstractBeanDefinitionReader：loadBeanDefinitions(Resource... resources)
+   遍历resources
+
+XmlBeanDefinitionReader：loadBeanDefinitions(EncodedResource encodedResource)
+   （1）从ThtreadLocalMap获取EncodedResource      ？？？？？？
+   （2）通过resource获取配置文件输入流getInputStream()
+
+XmlBeanDefinitionReader：doLoadBeanDefinitions(InputSource inputSource, Resource resource)
+   将inputSource转化为Document
+ 
+XmlBeanDefinitionReader：registerBeanDefinitions(Document doc, Resource resource)
+   创建DefaultBeanDefinitionDocumentReader
+
+DefaultBeanDefinitionDocumentReader：registerBeanDefinitions
+
+DefaultBeanDefinitionDocumentReader：doRegisterBeanDefinitions
+   设置delegate：xtd文件  标签识别文件
+   doc.getDocumentElement()
+
+
+DefaultBeanDefinitionDocumentReader：parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate)
+   遍历解析xml文件NodeList list = root.getChldNodes()
+   获取标签：Node node = list.item(i) 
+                    Element element = (Element )element
+  判断标签属性：
+	（1）默认命名空间delegate.isDefaultNamespace
+                         DefaultBeanDefinitionDocumentReader：parseDefaultElement解析标签
+	        
+	（2）其他：用户定制化标签
+                         DefaultBeanDefinitionDocumentReader： parseCustomElement解析标签
+
+ DefaultBeanDefinitionDocumentReader：parseDefaultElement解析默认命名空间标签
+    （1）判断是否为import标签：delegate.nodeNameEquals(ele, IMPORT_ELEMENT)
+    （2）判断是否为alias标签：delegate.nodeNameEquals(ele, ALIAS_ELEMENT)
+    （3）判断是否为bean标签：delegate.nodeNameEquals(ele, BEAN_ELEMENT)
+	DefaultBeanDefinitionDocumentReader：processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate)解析bean标签
+		a）创建BeanDefinitionHolder bdHolder 
+		b）decorateBeanDefinitionIfRequired解析
+    （4）判断是否为beans标签：delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)
+
+Bedefination设置到XmlBeanDefinitionReader
+
+doRegisterBeanDefinitions
+资源加载器
+类：DefaultResourceLoader
+接口：ResourceLoader、ResourcePatternResolver
+
+
+
+AntPathMatcher：路径匹配，正则表达式
+? matches one character
+* matches zero or more characters
+** matches zero or more directories in a path
+{spring:[a-z]+} matches the regexp [a-z]+ as a path variable named "spring"

@@ -1,0 +1,5 @@
+属性编辑器
+@Value={"fujian zhangzhou pinghe"}
+Address a;
+
+通过自定义属性编辑器，可以通过字符串对复合对象进行赋值
