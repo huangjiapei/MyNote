@@ -1,0 +1,47 @@
+合并：postProcessMergedBeanDefinition
+获取autowire的属性值：postProcessProperties
+
+InstantiationAwareBeanPostProcessor：创建对象，方法postProcessBeforeInstantiation
+
+InstantiationAwareBeanPostProcessor，postProcessAfterInstantiation：给属性赋值
+
+
+CommonAnnotationBeanPostProcessor
+	实现MergedBeanDefinitionPostProcessor，获取注解，加入集合，方法：postProcessMergedBeanDefinition
+	实现InstantiationAwareBeanPostProcessor，为注解赋值，方法：postProcessPropertyValues
+
+AutowiredAnnotationBeanPostProcessor实现InstantiationAwareBeanPostProcessor：获取注解，加入集合；解析注解
+
+
+
+InstantiationAwareBeanPostProcessor：执行初始化之前，方法postProcessBeforeInitialization
+
+InstantiationAwareBeanPostProcessor：执行初始化之后，方法postProcessAfterInitialization
+
+
+
+
+findAutowiringMetadata
+
+RuntimeBeanReference、BeanDefinitionHolder、BeanDefinition、DependencyDescriptor、ManagedArray、ManagedList、ManagedSet、ManagedMap、ManagedProperties、TypedStringValue、NullBean
+
+
+postProcessAfterInstantiation
+
+
+解决循环依赖：
+A->B->A : A调用getSingleton(此时一二级缓存没有A的信息，只有三级缓存有A的lambda表达式)，发现A正在创建过程中，且二级缓存中没有且允许被早期引用（即半成品就可以被引用），通过三级缓存的lambda即工厂创建一个对象，然后添加到二级缓存，并从三级缓存中移除kambda表达式。
+最后创建出完整对象，加入一级缓存，并从二三级缓存中移除。
+
+主要是两处逻辑：
+（1）doCreateBean的addSingletonFactory：加入三级缓存
+（2）getSingleton(String beanName, boolean allowEarlyReference)：从缓存中获取对象
+
+修改代码：（不需要代理，改为二级缓存）
+
+
+解决代理对象（代理对象的名字于原始对象一样）：
+A需要代理
+A先往三级缓存中添加lambda表达式（可以生成A的代理对象）以便后续循环引用的时候，从三级缓存中取出lambda表达式创建A的代理对象，在填充B属性的时候还未创建代理对象
+B引用A的时候，不能取A的原始对象，需要通过lambda表达式创建A的代理对象，因此，判断如果三级缓存有A的lambda表达式（生成代理对象）则创建A的代理对象，然后返回给B
+A->B->A：
