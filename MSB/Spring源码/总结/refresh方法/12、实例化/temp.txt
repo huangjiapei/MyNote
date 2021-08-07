@@ -1,0 +1,54 @@
+FactoryBean ->&factoryBeanName
+
+getObjectForBeanInstance:
+（1）如果是&开头并且是FactoryBean，则返回当前对象
+（2）如果不是以&开头
+    a)不是FactoryBean，返回当前对象
+    b)是FactoryBean，说明是需要获取FacoryBean创建的对象
+
+
+（1）以&开头并且是FactoryBean，则返回FactoryBean对象
+（2）以&开头并且不是FactoryBean，则抛出异常
+（3）不以&开头并且不是FactoryBean，则返回Bean对象
+（4）不以&开头并且是FactoryBean，则返回FactoryBean创建的对象
+
+
+
+
+实例化前：postProcessBeforeInstantiation
+实例化后：postProcessAfterInitialization
+初始化前：postProcessBeforeInitialization
+对注解赋值：postProcessProperties
+初始化后：postProcessAfterInstantiation
+
+
+AutowiredAnnotationBeanPostProcessor
+@Autowired
+@Value
+
+CommonAnnotationBeanPostProcessor
+@Resource
+@PostConstruct
+@PreDestory
+
+
+MergedBeanDefinitionPostProcessor
+
+
+addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
+
+
+
+
+
+
+
+单例&循环依赖&正在创建中
+
+
+
+postProcessMergedBeanDefinition
+
+
+
+

@@ -45,3 +45,16 @@ A需要代理
 A先往三级缓存中添加lambda表达式（可以生成A的代理对象）以便后续循环引用的时候，从三级缓存中取出lambda表达式创建A的代理对象，在填充B属性的时候还未创建代理对象
 B引用A的时候，不能取A的原始对象，需要通过lambda表达式创建A的代理对象，因此，判断如果三级缓存有A的lambda表达式（生成代理对象）则创建A的代理对象，然后返回给B
 A->B->A：
+
+
+
+
+doCreateBean往三级缓存加入lambda表达式：
+addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));其中bean为当前bean对象的引用
+
+addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) 
+
+通过lambda表达式创建：
+ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+singletonFactory.getObject();
+
