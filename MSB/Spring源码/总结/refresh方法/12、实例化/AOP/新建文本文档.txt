@@ -1,0 +1,76 @@
+拦截器：动态代理概念
+Advisor切点：Spring概念
+
+创建代理，最终都会生成对应的字节码文件
+
+需要代理的情况，需要提前把Advisor等创建好
+
+如果一个对象需要被代理，那么此对象对应的平台对象也需要被创建，只不过在后续流程会被替换为代理对象
+
+createBean：
+resolveBeforeInstantiation：用户自定义动态代理的方式；否则被代理类需要经过标准的代理流程来创建对象（即BPP：after创建代理对象）
+	AbstractAutoProxyCreator：postProcessBeforeInstantiation先判断是否需要被代理，在决定是否进行代理
+		AspectJAwareAdvisorAutoProxyCreator：shouldSkip判断是否需要被代理（基础类、切面aspect、Advisor等不用被代理，可以跳过）；但是创建切面之前，需要把Advisor准备好
+			（1）AnnotationAwareAspectJAutoProxyCreator：findCandidateAdvisors 创建Advisor集合
+				BeanFactoryAdvisorRetrievalHelper：findAdvisorBeans（1）配置文件方式，创建Advisor#0~Advisor#4
+				BeanFactoryAspectJAdvisorsBuilder：buildAspectJAdvisors（2）注解方式，找到当前bean工厂有哪些被@aspect注解修饰的切面，创建Advisor#0~Advisor#4
+			（2）遍历Advisor集合，查看当前beanName是否在Advisor集合中，有返回true，没有返回false
+		getCustomTargetSource如果有自定义的targetSource，进行动态代理创建，如果没有在后面BPP:after创建
+
+
+初始化阶段：
+applyBeanPostProcessorsAfterInitialization：标准化的创建动态代理流程 
+	AbstractAutoProxyCreator：postProcessAfterInitialization
+		wrapIfNecessary如果需要代理，先获取对象所需的拦截器（切面方法，主要是Advisor）需要创建动态代理对象
+			getAdvicesAndAdvisorsForBean：获取代理对象所需的拦截器
+			createProxy：创建代理对象
+
+
+getAdvicesAndAdvisorsForBean
+	findEligibleAdvisors通过遍历Advisor集合，获取表达式，通过表达式匹配类（使用ClassFilter，在AspectJExpressionPointCut中），再匹配方法（使用MethodMatcher，在AspectJExpressionPointCut中）；获取符合条件的Advisor
+
+
+
+AbstractAutoProxyCreator：createProxy，创建proxyFactory，将advisors加入proxyFactory
+	proxyFactory.getProxy(classLoader)：创建代理对象
+		createAopProxy()：创建cglib或者jdk代理方式，并设置相关属性（advisors）
+		
+
+
+
+方法->可能对应有多个advisor
+
+
+执行方法：
+获取advisors，执行拦截方法
+
+
+理清楚：CallBack（DynamicAdvisedInterceptor）、ExposeInvocationInterceptor（实现MethodInterceptor）
+advised存储的内容
+
+
+
+
+
+
+
+exposedInvocationInterceptor
+AspectJAfterthrowingAdvice
+AspectJAfterReturningAdvice
+AspectAfterAdvice
+AspectJAroundAdvice
+AspectMethodBeforeAdvice
+
+
+
+
+
+
+
+
+wrapIfNecessary
+
+
+
+
+	
