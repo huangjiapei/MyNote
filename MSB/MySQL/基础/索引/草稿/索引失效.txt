@@ -1,0 +1,3 @@
+1、组合索引（bcd）
+共8条数据
+select * from user where b>1 :不走索引，避免了多次回表扫描

@@ -1,0 +1,89 @@
+1、DISTINCT
+SELECT DISTINCT ename,job FROM emp;
+
+2、AS重命名
+SELECT ename,sal*12 AS yearSal FROM emp;
+
+3、CASE WHEN
+SELECT ename,sal*12 + (CASE WHEN comm IS NULL THEN 0 ELSE comm END) AS yearSal FROM emp;
+
+4、WHERE
+SELECT * FROM emp WHERE deptno=10;
+SELECT * FROM emp WHERE deptno!=10;
+select * from emp where hiredate > '2002-6-1';
+select * from emp where sal>=5000 and sal<=10000;
+select * from emp where sal=8000 or sal=15000；
+
+5、between
+select * from emp where sal between 5000 and 10000;
+
+6、null、not null
+select * from emp where comm is null;
+select * from emp where comm is not null;
+
+7、in
+select * from emp where sal in (8000,15000)；【集合中取】
+select * from emp where ename in ('甘宁','周泰');
+
+8、like（%：0个或者多个字符、_：一个字符）
+select * from emp where job like '%理%';
+
+9、order
+（1）select * from emp order by sal
+（2）select * from emp order by sal desc
+（3）select * from emp where deptno>=20 order by sal desc
+
+（4）SELECT
+	*
+FROM
+	emp
+ORDER BY
+	deptno ASC,
+	sal DESC
+
+
+10、函数：先执行select，再执行函数
+select lower(ename) from emp
+select concat(ename,job,mgr) as info from emp
+select * from emp order by year(hiredate)
+select * from emp order by month(hiredate)
+
+11、组函数：最后只有一条，先执行select，再执行函数
+select max(sal) from emp
+select * from emp where sal = (select min(sal) from emp)
+select avg(sal) from emp
+select count(*) from emp
+select count(comm) from emp【null不计数】
+
+12、group by：先分组，再select【group by每组只能有一条结果】
+select max(sal) from emp group by deptno;
+select max(sal) from emp group by deptno,sal;【按照deptno,sal进行分组】
+
+
+13、join
+select ename,emp.deptno,sal from emp join 
+(select deptno,max(sal) max_sal from emp group by deptno) t
+where emp.deptno=t.deptno and emp.sal=t.max_sal;
+
+
+14、having：对group进行条件限制，where是对单条记录进行限制，having是对组内进行限制
+select deptno,avg(sal) from emp group by deptno having avg(sal)>10000
+
+15、子查询，子连接：得利用中间表
+select * from emp where sal > (select avg(sal) from emp)
+
+16、自连接：不是中间表，表已经存在
+select e1.ename,e2.ename from emp e1,emp e2 where e1.mgr=e2.empno
+select e1.ename,e2.ename from emp e1 left join emp e2 on e1.mgr=e2.empno：左边表的数据没有匹配也得列出来
+select e1.ename,e2.ename from emp e1 right join emp e2 on e1.mgr=e2.empno
+
+full join
+
+17、表连接：不是中间表，表已经存在
+
+
+19、视图
+create view v1 as select ename from dept
+
+
+题目
