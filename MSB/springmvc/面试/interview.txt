@@ -1,0 +1,36 @@
+1、自定义拦截器
+实现HandlerInterceptor接口，并注入IOC容器中
+
+2、自定义类型转化器
+实现Converter接口
+注入到IOC容器的FormattingConversionServiceFactoryBean中
+
+3、自定义视图解析器
+实现ViewResolver接口，并注入IOC容器中
+
+4、拦截器跟过滤器的区别
+​	1、原理：过滤器是基于函数回调的，而拦截器是基于java反射的
+​	2、位置：过滤器依赖于servlet容器，而拦截器不依赖与Servlet容器
+	3、对象：过滤器几乎对所有的请求都起作用，而拦截器只能对action请求起作用
+	4、拦截器可以访问action的上下文，而过滤器不可以
+	5、在controller的生命周期中，拦截器可以多次调用，而过滤器只能在web容器初始化的时候初始化一次，后续匹配的所有请求都会经过过滤器来进行过滤
+
+
+5、异步请求
+（1）原因
+同步模型：
+异步模式：
+为了提高服务器的吞吐量
+
+（2）怎么使用异步
+在controller中返回一个Callable（或者WebAsyncTask）、或者DeferredResult
+
+【DeferredResult的执行过程和Callable差不多，唯一不同的时候，DeferredResult是由应用程序其他线程执行返回结果，而Callable是由TaskExecutor执行返回结果。】
+3）Callable或者WebAsyncTask（交给springmvc启动线程，异步处理）
+	当controller返回值是Callable的时候，springmvc就会启动一个线程将Callable交给TaskExecutor去处理
+	当Callable执行结束之后，springmvc就会重新启动分配一个request请求，然后DispatcherServlet就重新调用和处理Callable异步执行的返回结果，然后返回视图
+
+（4）DeferredResult（应用程序启动线程执行）
+	DeferredResult是由应用程序代码启动其他线程执行返回结果（异步线程会setResult）
+	setResult的时候就会触发springmvc分配一个request到DispatcherServlet，然后DispatcherServlet处理DeferredResult的返回结果，并返回视图
+

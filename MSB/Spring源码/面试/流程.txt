@@ -1,0 +1,94 @@
+1、初始化
+（1）设置配置文件路径到当前ctx中
+（2）设置容器的属性
+（3）创建BeanFactory，并解析BeanDefinition
+（4）设置BeanFactory的默认属性（EL、属性编辑器、BPP等等）
+
+2、执行BFPP
+
+3、注册BPP
+
+
+4、实例化
+（1）冻结BeanDefinition,防止被修改
+
+（2）遍历BeanDefinitionNames集合，如果是非懒加载、非抽象、单例则进行构建对象
+         a）FactoryBean：
+         b）普通Bean：
+
+（3）先从缓存中查找，找到返回（如果是FactoryBean还需要特殊处理），找不到创建（类似DCL）
+          a）查找一级缓存不加锁：找到返回；找不到且还未创建返回null；找不到且正在创建进入b）
+          b）查找二级缓存不加锁：找到返回；找不到且不允许被提前引用返回null；找不到且允许被提前引用进入c）
+          c）查找三级缓存加锁（锁是一级缓存）：还得先从一二级缓存中查找，查找不到才通过三级缓存获取【加锁，判空】
+
+（4）标记对象正在创建（加入alreadyCreated Set集合中）
+
+（5）判断对象作用域
+         a）单例：创建，并加入一级缓存
+         b）原型：创建返回
+
+（6）单例创建对象，创建完成会加入一级缓存
+         a）加一级缓存的锁，再从一级缓存中查找是否存在，如果存在则返回；否则就需要创建【加锁，判空】
+         b）创建代理对象，填充属性然后返回：给InstantiationAwareBeanPostProcessor一个机会返回一个代理对象，如果有实现InstantiationAwareBeanPostProcessor接口，
+			           会调用它的postProcessBeforeInstantiation创建对象，调用postProcessAfterInstantiation填充属性并返回
+         c）创建对象
+	*Suppiler：从BeanDefinition中获取Suppiler，通过Suppiler创建对象。所以要扩展的话，需要将Suppiler设置到BeanDefinition中（BFPP）。
+	*FactoryMethod：配置文件中的factory-method（静态工厂、实例工厂），从BeanDefinition中获取。
+	*通过反射反射创建对象
+
+5、初始化
+         a）填充基本属性
+	首先，如果允许循环依赖，则将beanName和Lambda表达式加入三级缓存中。
+	其次，进行属性赋值操作（xml：<property>、auto-wired；类中：@Value；自定义BPP）
+	       i）auto-wired：byName或者byType填充
+	       ii）InstantiationAwareBeanPostProcessor：postProcessProperties、postProcessPropertyValues
+	       iii）<property>标签填充
+	       iv）@Value、@Autowired标签填充
+
+        b）填充Aware属性
+	如果类实现Aware接口，则执行Aware接口方法设置属性（BeanNameAware、BeanClassLoaderAware、BeanFactoryAware）
+
+         c）执行BPP的before方法
+	执行BeanPostProcessor的postProcessBeforeInitialization方法
+
+         d）执行初始化方法
+	*如果类实现InitialzingBean接口，调用它的afterPropertiesSet初始化
+	*配置文件中<init-method>标签的方法
+
+         e）执行BPP的after方法
+	动态代理
+
+	
+6、动态代理
+Advisor：切面方法，around、before、after、after returing、after throwing通知器
+Advice：包含所有切面方法、被代理对象等等
+
+（1）创建代理对象
+         i）创建CallBack即DynamicAdvisedInterceptor，包含一个属性Advice
+         ii）将CallBack、SuperClass设置到Enhancer中，通过Enhancer创建代理对象
+
+（2）执行代理方法的过程
+         i）从CallBack的advice中获取advisor，组成的责任链
+         ii）执行责任链（Around、Before、被代理对象的方法、Around、After、AfterReturing、AfterThrowing）
+
+
+1、invokeBeanFactoryPostProcessor：BeanFactory的后置处理器
+两个接口
+BFPP：增强BeanFactory（BeanFactoryPostProcessor）
+BDRPP：增强BeanDefinition、增强BeanFactory（BeanDefinitionRegistryPostProcessor继承BeanFactoryPostProcessor）
+
+（1）找出所有实现BDRPP接口的对象
+         a）执行对应增强BeanDefinition方法：按照实现PropertyOrder接口、Order接口顺序去执行，最后是什么都没有实现的BDRPP
+         b）执行对应增强BeanFactory方法
+
+（2）找出所有实现BFPP接口的对象
+         a）执行增强BeanFactory方法
+
+
+2、
+获取所有实现BeanPostProcessor接口的对象，加入到beanFactory.beanPostProcessor链表中
+按照以下顺序加入链表：
+实现PriorityOrdered接口的BeanPostProcessor
+Spring内置BeanPostProcessor
+实现Order接口的BeanPostProcessor
+其他BeanPostProcessor

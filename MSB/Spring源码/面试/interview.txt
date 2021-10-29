@@ -1,0 +1,9 @@
+1、属性编辑器
+（1）编辑器（实现PropertyEditorSupport接口）：编辑逻辑
+（2）注册器（实现PropertyEditorRegistrar接口）：编辑器关联对应的类型（class，编辑器）
+（3）将注册器通过加入到CustomEditorConfigurer中
+
+2、增强BeanDefinition
+实现BFPP或者BDRPP接口，然后再注入到IOC容器中
+
+3、

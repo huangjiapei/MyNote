@@ -1,0 +1,91 @@
+1、访问某个类static final String变量，会不会加载此类？
+不会，编译的时候已经将它放入常量池中。
+
+2、为什么分为新生代和老年代？
+根据研究表明，有些垃圾存活时间长、有些垃圾存活时间短，需要对于不同垃圾采取不同的策略，分而治之。
+属性
+     对于新生代：垃圾多、朝生夕死
+     对于老年代：存活时间长
+垃圾回收算法不一样
+   新生代：存活垃圾少，适合使用复制算法
+   老年代：存活对象多，适合使用标记-整理算法
+
+3、新生代为什么要切分？
+   由于采用复制算法、并且有分代年龄的设置，就需要切分空间为对象分配区、幸存区，并且由于有分代年龄，幸存区就必须有两个。
+  
+4、对于方法区的实现，jdk1.8为什么要使用元空间替换永久代？
+   由于永久代是从堆中分配的，具体大小不好掌控（分配小了可能出现OOM；分配大了浪费空间）。
+   为解决这个问题，干脆将方法区移出到直接内存中，但是通常设置MaxMetaSpace大小，为了防止代码有问题，过度占用操作系统内存。
+
+5、ArrayBlockingQueue与LinkedBlockingQueue区别？
+ArrayBlockingQueue：数组；大小固定；只有一把锁；涉及缓存行
+LinkedBlockingQueue：链表；最大长度为Int最大值；put和take各一把锁，锁细化，并发度好
+	take锁：
+		如果没有数据则等待
+		如果有数据则取数据，取完还有数据，则通知其他消费者回去。（先取数据，再更新计数）
+		最后，如果移除元素之前队列是满的，唤醒生产线程进行添加元素。
+	put锁：
+		队列已满，阻塞等待。
+		队列未满，则放入数据，如果放完以后队列还有剩余空间，继续唤醒下一个添加线程进行添加。（先放数据，再更新计数）
+		如果放之前队列中没有元素，放完以后要唤醒消费线程进行消费。
+
+PriorityBlockingQueue：支持优先级排序；排序（数据结构：大顶堆或者小顶堆；实现comparable接口，用于比较大小）
+
+SynchronousQueue：容量等于0的同步队列
+
+
+
+
+在只有一个数据的情况下，LinkedQueue的add与remove并发，可能访问空指针的
+
+异常操作：
+n1 -> null
+remove n1：清空n1（但是内存没释放，数据个数减一个）                   head=null
+
+n1 -> n1 n2
+add n2：      head不为空 ：n1<->n2 （数据个数加1个）
+
+正常操作
+n1 -> null
+remove n1：清空n1（但是内存没释放，数据个数减一个）                   head=null
+
+n1 -> n1 n2
+add n2：      					           head为空 ：head = n2（数据个数加1个）	   
+
+在只有一个数据的情况下，remove线程将数据内容清空，但是内存还存在，并且head还未置null；
+所以并发操作情况下，对于add线程来说head还存在，就会导致后续错误的操作，就将数据追加在head后面；【如果判断head为null，就会执行正确操作：将head更新为n2】
+而最后remove线程又将head置为null，此时就可能访问空指针。
+（相当于head不同步导致的）
+
+add流程：
+void linkLast(E e) {
+        final Node<E> l = last;
+        final Node<E> newNode = new Node<>(l, e, null);
+        last = newNode;
+        if (l == null)
+            first = newNode;
+        else
+            l.next = newNode;
+        size++;
+        modCount++;
+    }
+
+
+private E unlinkFirst(Node<E> f) {
+        // assert f == first && f != null;
+        final E element = f.item;
+        final Node<E> next = f.next;
+        f.item = null;
+        f.next = null; // help GC
+        first = next;
+        if (next == null)
+            last = null;
+        else
+            next.prev = null;
+        size--;
+        modCount++;
+        return element;
+    }
+
+
+ 
