@@ -7,9 +7,9 @@ HashTable、HashMap、ConcurrentHashMap
 2、ConcurrentHashMap原理？
 https://www.jianshu.com/p/4e03b08dc007
 （1）jdk1.7
-结构：Segment分段锁+数组。将数据分成一段一段存储，然后每一段分配一把锁，每段的结构就是数组+链表。
+结构：Segment分段锁+数组。将数据分成一段一段存储，然后每一段分配一把锁，每段的结构就是HashTable。
 锁：每一段分配一把锁，当一个线程占用锁访问其他一段数据的时候，其他段的数据也能被其他线程访问。
-查找数据：两次Hash，先段、再数组
+查找数据：两次Hash，先段、再数组(key.hashCode)
 
 （2）jdk1.8
 结构：数组+链表+红黑树，当链表长度超过8的时候，将链表转换为红黑树
@@ -21,7 +21,7 @@ https://www.jianshu.com/p/4e03b08dc007
 （2）第二个锁资源的争夺，在put方法中会使用synchonized对头节点进行加锁，而锁本身也是分等级的，因此我们的主要思路就是尽可能的避免锁等级。
 所以，针对第二点，我们可以将数据通过通过ConcurrentHashMap的spread方法进行预处理，这样我们可以将存在hash冲突的数据放在一个组里面，每个组都使用单线程进行put操作，这样的话可以保证锁仅停留在偏向锁这个级别，不会升级，从而提升效率。
 
-3、HashMAp
+3、HashMap
 （1）结构：数组+链表+红黑树
 （2）变量
         Entry：Node<K,V>

@@ -1,0 +1,69 @@
+HashMap：
+结构
+扩容
+重复
+put、get
+
+HashTable：
+结构
+锁
+
+ConHashMap
+结构
+锁
+
+
+1、HashMap
+（1）结构：数组+链表+红黑树，当链表长度大于8的时候会变为红黑树
+（2）扩容
+         原因：由于桶的数量不够，导致频繁产生Hash冲突，使得HashMap性能下降；因此通过扩容缓解Hash冲突。
+         何时扩容：当前数组大小>Capacity总容量*LoadFactor负载因子的时候
+         如何扩容：
+	a）创建一个新的Entry数组，长度为原数组的两倍；
+	b）Rehash重新计算每个Entry位置
+	 原始长度为2^N，元素的table索引为其hash值的后N位确定
+	 扩容后为2^N+1，元素的table索引为其hash值的后N+1位确定，比原来多了一位
+	 所以只要判断新hash值的N+1位是否为0，就知道位置是否改变
+	 元素hash值第N+1位为0：不需要进行位置调整（hash值与大小为2^n一样，即位置不变）
+	 元素hash值第N+1位为1：调整至原索引的两倍位置
+
+（3）如何判断key重复（重复条件：equal && hashCode）
+两个对象equals不相等，那么两对象的hashCode()返回必定不同（此处可用来提高哈希表性能）
+两个对象的hashCode()返回值相同，两对象不一定相同，还需要通过equals()再次判断
+
+* 要解决上述问题首先要明白当对象存放到集合当中的时候hashMap是如何判断两个对象是否是相同的key的：
+		 * hashMap会先调用key对象当中的equals方法来和已存在的key进行比较，当值为false的时候则认为是两个不同的key值
+		 * 当equals方法相同的时候
+		 * 		比较当前key和已经存在的key对象的hashCode值是否是相同的
+		 * 			当hashCode也相同的时候则认为当前所进行比较的两个key对象是完全相同的
+		 * 				此时后一个key对象当中的value将会对以存在的key所对应的value进行覆盖操作
+		 * 			当hashCode不同的时候则认为两个key是不同的，将会为当前key的value开辟新的空间来进行内容的存放操作
+
+（2）put（判断两个对象是否相等：hashCode、equal）
+a）数组为空，初始化
+b）通过key计算hash值，知道数组下标，数组为空，数组不为空（红黑树或者链表，遍历数据，如果重复覆盖；如果不重复，插入数据），如果链表长度大于8
+c）判断是否需要进行扩容
+
+（3）get
+a）通过key计算hash值，知道数组下标，遍历数据，比较key是否相等
+
+
+2、HashTable与HashMap区别？
+（1）安全：两者最主要的区别在于Hashtable是线程安全，而HashMap则非线程安全。
+
+（2）null：
+Hashtable则不允许null作为key；
+虽说HashMap支持null值作为key
+
+（3）初始容量与扩容
+HashMap的初始容量为16，Hashtable初始容量为11，两者的填充因子默认都是0.75。
+HashMap扩容时是当前容量翻倍即:capacity2，Hashtable扩容时是容量翻倍再+1即:capacity2+1。
+
+（4）两者计算hash的方法不同
+Hashtable计算hash是直接使用key的hashcode对table数组的长度直接进行取模；
+HashMap计算hash对key的hashcode进行了二次hash，以获得更好的散列值，然后对table数组长度取摸。
+
+
+3、HashMap与ConHashMap
+线程非安全
+线程安全

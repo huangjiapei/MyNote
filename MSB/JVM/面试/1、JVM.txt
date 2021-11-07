@@ -88,4 +88,6 @@ private E unlinkFirst(Node<E> f) {
     }
 
 
- 
+ 13、反射中，Class.forName() 和ClassLoader.loadClass()区别
+Class.forName() 默认执行类加载过程中的连接与初始化动作，一旦执行初始化动作，静态变量就会被初始化为程序员设置的值，如果有静态代码块，静态代码块也会被执行
+ClassLoader.loadClass() 默认只执行类加载过程中的加载动作，后面的动作都不会执行

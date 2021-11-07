@@ -26,7 +26,7 @@
 在controller中返回一个Callable（或者WebAsyncTask）、或者DeferredResult
 
 【DeferredResult的执行过程和Callable差不多，唯一不同的时候，DeferredResult是由应用程序其他线程执行返回结果，而Callable是由TaskExecutor执行返回结果。】
-3）Callable或者WebAsyncTask（交给springmvc启动线程，异步处理）
+（3）Callable或者WebAsyncTask（交给springmvc启动线程，异步处理）
 	当controller返回值是Callable的时候，springmvc就会启动一个线程将Callable交给TaskExecutor去处理
 	当Callable执行结束之后，springmvc就会重新启动分配一个request请求，然后DispatcherServlet就重新调用和处理Callable异步执行的返回结果，然后返回视图
 

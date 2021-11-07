@@ -1,0 +1,42 @@
+1、mysql处理死锁
+    1）直接进入等待，直到超时。这个超时时间可以通过参数innodb_lock_wait_timeout来设置
+    2）发起死锁检测，发现死锁后，主动回滚死锁链条中的某一个事务，让其他事务得以执行。将参数innodb_deadlock_detect设置为on，表示开启这个逻辑。
+
+如何选择：
+     在innodb中，innodb_lock_wait_timeout的值默认是50s，如果使用第一种方法，第一个被锁住的线程要过50s才会超时退出，然后其他线程才有可能继续执行。对于在线服务来说，这个等待时间往往是无法接受的。
+     但是我们又不能把这个时间设置的很小，比如1s，如果这个时候不是死锁，而是正常的锁等待呢。这样就会造成很多误伤,所以我们还是使用死锁检测好一些，好在innodb_deadlock_detect默认就是on
+
+     其实死锁检测也是会占用很多cpu资源的，当事务被锁住的时候，就要看看它锁依赖的线程有没有被别人锁住
+
+2、收集死锁信息
+    1）查看进程
+         show processlist，查询到对应进程，然后kill，kill后再查看是否还有锁
+
+    2）查看有没有表被锁住
+         show open tables where in_use >=1
+
+    3）查看information_schema中三个关于锁的表
+         innodb_trx         ## 查看正在锁的事务
+         innodb_locks       ## 当前出现的锁
+         innodb_lock_waits  ## 查看等待锁的事务
+
+    4）行锁的争夺情况
+         show status like 'InnoDB_row_lock%';
+
+    5）查看最近一次死锁日志【https://zhuanlan.zhihu.com/p/245556254】
+         show engine innodb status
+         分析：1）找到关键词TRANSACTION，事务38048
+                   2）查看正在执行的SQL
+                   3）正在等待锁释放(WAITING FOR THIS LOCK TO BE GRANTED)、等待的锁、索引、间隙区间等等
+                   4）持有锁(HOLDS THE LOCK)、索引、间隙区间等等
+                   5）发生死锁，回滚的事务(we roll back transaction 1)；
+
+3、分析死锁
+    1）show engine innodb status;查看死锁日志
+    2）找出死锁SQL
+    3）SQL加锁分析，这个可以去官网看哈
+    4）分析死锁日志（持有什么锁，等待什么锁）
+
+4、解决死锁
+    1）终止（或撤销）进程。终止（或撤销）系统中的一个或多个死锁进程，直至打破循环环路，使系统从死锁状态中解除出来。
+    2）抢占资源。从一个或多个进程中抢占足够数量的资源，分配给死锁进程，以打破死锁状态。
